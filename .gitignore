@@ -36,6 +36,3 @@
 cmake-build-*/
 /cmake-build-debug/
 /.idea/
-/libs/glfw/
-/libs/freeglut/
-/libs/glm/
