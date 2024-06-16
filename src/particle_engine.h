@@ -20,8 +20,6 @@ private:
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
-    GLint uColor_location;
-    GLint vpos_location;
 };
 
 #endif //__MAIN___PY_PARTICLE_ENGINE_H

@@ -125,6 +125,27 @@ int main(void)
 
         // particleEngine.render();
         glBindVertexArray(vao);
+
+        float x = 2.0f * ((static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5);
+        float y = 2.0f * ((static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5);
+
+        vertexData = {
+                x + -0.5f,  y + 0.5f, 0.0f,
+                x + -0.5f, y + -0.5f, 0.0f,
+                x + 0.5f, y + -0.5f, 0.0f,
+                x + 0.5f,  y + 0.5f, 0.0f
+        };
+
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo0);
+        glBufferData(GL_ARRAY_BUFFER,sizeof(vertexData[0]) * vertexData.size(),vertexData.data(),GL_STATIC_DRAW);
+        GLint posLocation = glGetAttribLocation(program, "position");
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3,GL_FLOAT,GL_FALSE,0,nullptr);
+
+
+
+
         glDrawArrays(GL_QUADS, 0, 4);
         glBindVertexArray(0);
 
