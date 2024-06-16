@@ -68,17 +68,33 @@ int main(void)
             0.5f, -0.5f, 0.0f,
             0.5f,  0.5f, 0.0f
     };
+    std::vector<float> colorData {
+            1.0f, 0.0f, 0.0f,
+            1.0f, 1.0f, 0.0f,
+            1.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 0.0f
+    };
     glFrontFace(GL_CW);
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-    GLuint vbo = 0;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    GLuint vbo0 = 0;
+    GLuint vbo1 = 0;
+    glGenBuffers(1, &vbo0);
+    glGenBuffers(1, &vbo1);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo0);
     glBufferData(GL_ARRAY_BUFFER,sizeof(vertexData[0]) * vertexData.size(),vertexData.data(),GL_STATIC_DRAW);
     GLint posLocation = glGetAttribLocation(program, "position");
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3,GL_FLOAT,GL_FALSE,0,nullptr);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo1);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colorData[0]) * colorData.size(), colorData.data(), GL_STATIC_DRAW);
+    GLint colorLocation = glGetAttribLocation(program, "color");
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
