@@ -49,9 +49,23 @@ endif()
 list(APPEND FLAGS "-lrt")
 MESSAGE(STATUS ${FLAGS})
 
-add_executable(cpart src/main.cpp)
+add_executable(cpart
+        src/main.cpp
+        src/util.h
+        src/util.cpp
+        src/particle.h
+        src/particle.cpp
+        src/particle_engine.h
+        src/particle_engine.cpp
+)
 
 set(CMAKE_CXX_FLAGS ${FLAGS})
 
 set_target_properties(cpart PROPERTIES COMPILE_FLAGS ${FLAGS})
 target_link_libraries(cpart PRIVATE glad glfw)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex.glsl
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/fragment.glsl
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
