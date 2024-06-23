@@ -26,26 +26,13 @@ public:
         return instancePtr;
     }
 
-    void convert(double px, double py, double *rx, double *ry) {
-        if (rx) {
-            *rx = 0;
-        }
-        if (ry) {
-            *ry = 0;
-        }
-        if (window != nullptr) {
-            int width, height;
-            glfwGetWindowSize(window, &width, &height);
-            if (rx != nullptr) {
-                *rx = 2 * (px / width) - 1;
-                printf("rx: %f\n", *rx);
-            }
-            if (ry != nullptr) {
-                *ry = -2 * (py / height) + 1;
-                printf("ry: %f\n", *ry);
-            }
-        }
-    }
+    void convertPixelsToRelative(double px, double py, double *rx, double *ry);
+
+    void convertRelativeToPixels(double rx, double ry, double *px, double *py);
+
+    void getRelativeDeltas(double dpx, double dpy, double *dx, double *dy);
+
+    void getWindowSize(int* width, int* height);
 
 };
 

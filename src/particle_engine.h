@@ -22,6 +22,8 @@ public:
     void init();
     void destroy();
     void onClick(double xPos, double yPos);
+    void snapToGrid(double rx, double ry, double *rx1, double *ry1);
+    void getRowCol(double rx, double ry, int* row, int* col);
 
     static ParticleEngine* getInstance() {
         if (instancePtr == nullptr) {
@@ -35,6 +37,8 @@ private:
     GLuint vao;
     GLuint vbo0, vbo1;
     GLuint ebo;
+    int rows, cols;
+    std::vector<std::vector<Particle*>> particleMatrix;
 };
 
 #endif //__MAIN___PY_PARTICLE_ENGINE_H

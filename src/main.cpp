@@ -89,6 +89,7 @@ int main(void)
         // updateAllPixels();
         // renderAllPixels();
         // renderMouseCircle();
+        particleEngine->update(0.1);
 
         float ratio;
         int width, height;
