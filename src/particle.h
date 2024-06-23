@@ -3,6 +3,8 @@
 #ifndef __MAIN___PY_PARTICLE_H
 #define __MAIN___PY_PARTICLE_H
 
+#define SAND (0)
+#define WATER (1)
 
 #include "glm/vec2.hpp"
 

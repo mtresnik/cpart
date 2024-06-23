@@ -11,6 +11,9 @@ class ParticleEngine {
 private:
 
     static ParticleEngine* instancePtr;
+    void updateSand(Particle* particle, float dt);
+    void snapToGrid(double rx, double ry, double *rx1, double *ry1);
+    void getRowCol(double rx, double ry, int* row, int* col);
 
 public:
 
@@ -22,8 +25,6 @@ public:
     void init();
     void destroy();
     void onClick(double xPos, double yPos);
-    void snapToGrid(double rx, double ry, double *rx1, double *ry1);
-    void getRowCol(double rx, double ry, int* row, int* col);
 
     static ParticleEngine* getInstance() {
         if (instancePtr == nullptr) {

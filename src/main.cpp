@@ -11,19 +11,6 @@
 #include "util.h"
 #include "converter.h"
 
-
-static const struct
-{
-    float x, y;
-    float r, g, b;
-} vertices[3] =
-{
-        { -0.6f, -0.4f, 1.f, 0.f, 0.f },
-        {  0.6f, -0.4f, 0.f, 1.f, 0.f },
-        {   0.f,  0.6f, 0.f, 0.f, 1.f }
-};
-
-
 static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error: %s\n", description);
@@ -31,13 +18,19 @@ static void error_callback(int error, const char* description)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    } else if (key == GLFW_KEY_SPACE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        double xPos, yPos;
+        glfwGetCursorPos(window, &xPos, &yPos);
+        ParticleEngine* particleEngine = ParticleEngine::getInstance();
+        particleEngine->onClick(xPos, yPos);
+    }
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double xPos, yPos;
         glfwGetCursorPos(window, &xPos, &yPos);
         ParticleEngine* particleEngine = ParticleEngine::getInstance();
@@ -84,19 +77,9 @@ int main(void)
     particleEngine->init();
     while (!glfwWindowShouldClose(window))
     {
-
-        // Iterate through every cell of the matrix and call update.
-        // updateAllPixels();
-        // renderAllPixels();
-        // renderMouseCircle();
-        particleEngine->update(0.1);
-
-        float ratio;
+        particleEngine->update(0.05);
         int width, height;
-        mat4x4 m, p, mvp;
-
         glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float) height;
 
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT);

@@ -6,7 +6,8 @@
 #include "converter.h"
 
 #define GRAVITY (0.1f)
-#define PARTICLE_WIDTH (16)
+#define PARTICLE_SPEED (0.2f)
+#define PARTICLE_WIDTH (8)
 
 #include <string>
 #include <fstream>
@@ -24,31 +25,27 @@ std::string read(const std::string& filename) {
     return content;
 }
 
-
-void ParticleEngine::update(float dt) {
-    for(auto &particle : particles) {
-        if (particle->inAir) {
-            int row, col;
-            getRowCol(particle->position.x, particle->position.y, &row, &col);
-            if (row < rows && col < cols) {
-                Particle* below = nullptr;
-                if (row + 1 < rows) {
-                    below = particleMatrix[row + 1][col];
-                }
-                if (below == nullptr) {
-                    if (row == rows - 1) {
-                        double rx1, ry1;
-                        snapToGrid(particle->position.x, particle->position.y, &rx1, &ry1);
-                        particle->position.x = rx1;
-                        particle->position.y = ry1;
-                        particle->speed.y = 0.0f;
-                        particle->inAir = false;
-                        particleMatrix[row][col] = particle;
-                    } else {
-                        particle->speed.y -= GRAVITY * dt;
-                        particle->position += particle->speed * dt;
-                    }
-                } else {
+void ParticleEngine::updateSand(Particle* particle, float dt) {
+    if (particle->inAir) {
+        int row, col;
+        getRowCol(particle->position.x, particle->position.y, &row, &col);
+        if (row > 0 && col > 0 && row < rows && col < cols) {
+            Particle* below = nullptr;
+            Particle* bottomLeft = nullptr;
+            Particle* bottomRight = nullptr;
+            if (row + 1 < rows) {
+                below = particleMatrix[row + 1][col];
+            }
+            if (row + 1 < rows && col - 1 > 0) {
+                bottomLeft = particleMatrix[row + 1][col - 1];
+            }
+            if (row + 1 < rows && col + 1 < cols) {
+                bottomRight = particleMatrix[row + 1][col + 1];
+            }
+            if (below != nullptr || row == rows - 1) {
+                double dx, dy;
+                Converter::getInstance()->getRelativeDeltas(PARTICLE_WIDTH, PARTICLE_WIDTH, &dx, &dy);
+                if (bottomLeft != nullptr && bottomRight != nullptr || row == rows - 1) {
                     double rx1, ry1;
                     snapToGrid(particle->position.x, particle->position.y, &rx1, &ry1);
                     particle->position.x = rx1;
@@ -56,14 +53,61 @@ void ParticleEngine::update(float dt) {
                     particle->inAir= false;
                     particleMatrix[row][col] = particle;
                     particle->speed.y = 0.0f;
+                } else if (bottomLeft == nullptr && bottomRight == nullptr) {
+                    // go a random direction
+                    particle->position.x -= dx;
+                    particle->position.y -= dy/2;
+                    double rx1, ry1;
+                    snapToGrid(particle->position.x, particle->position.y, &rx1, &ry1);
+                    particle->position.x = rx1;
+                    particle->position.y = ry1;
+                } else if (bottomLeft == nullptr) {
+                    // go left
+                    particle->position.x -= dx;
+                    particle->position.y -= dy/2;
+                    double rx1, ry1;
+                    snapToGrid(particle->position.x, particle->position.y, &rx1, &ry1);
+                    particle->position.x = rx1;
+                    particle->position.y = ry1;
+                } else {
+                    // go right
+                    particle->position.x += dx;
+                    particle->position.y -= dy/2;
+                    double rx1, ry1;
+                    snapToGrid(particle->position.x, particle->position.y, &rx1, &ry1);
+                    particle->position.x = rx1;
+                    particle->position.y = ry1;
                 }
             } else {
-                particle->inAir = false;
+                particle->speed.y -= GRAVITY * dt;
+                particle->position += particle->speed * dt;
             }
+        } else {
+            particle->inAir = false;
+        }
 
+    }
+}
+
+void ParticleEngine::update(float dt) {
+    for(auto &particle : particles) {
+        switch (particle->type) {
+            case SAND:
+                updateSand(particle, dt);
+                break;
+            default:
+                break;
         }
     }
 }
+
+
+std::vector<float> sandColor {
+        194 / 255.0, 178 / 255.0, 128 / 255.0,
+        194 / 255.0, 178 / 255.0, 128 / 255.0,
+        194 / 255.0, 178 / 255.0, 128 / 255.0,
+        194 / 255.0, 178 / 255.0, 128 / 255.0,
+};
 
 void ParticleEngine::render() {
 
@@ -78,17 +122,21 @@ void ParticleEngine::render() {
                 static_cast<float>(particle->position.x + dx), static_cast<float>(particle->position.y - dy), 0.0f,
                 static_cast<float>(particle->position.x),  static_cast<float>(particle->position.y - dy), 0.0f
         };
-        std::vector<float> colorData {
-                1.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 0.0f,
-                1.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f
-        };
         glBindBuffer(GL_ARRAY_BUFFER, vbo0);
         glBufferData(GL_ARRAY_BUFFER,sizeof(vertexData[0]) * vertexData.size(),vertexData.data(),GL_STATIC_DRAW);
         GLint posLocation = glGetAttribLocation(program, "position");
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3,GL_FLOAT,GL_FALSE,0,nullptr);
+
+        std::vector<float> colorData;
+
+        switch (particle->type) {
+            case SAND:
+                colorData = sandColor;
+                break;
+            default:
+                colorData = sandColor;
+        }
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo1);
         glBufferData(GL_ARRAY_BUFFER, sizeof(colorData[0]) * colorData.size(), colorData.data(), GL_STATIC_DRAW);
@@ -128,6 +176,8 @@ void ParticleEngine::init() {
 
 void ParticleEngine::destroy() {
     glDeleteProgram(program);
+    glDeleteBuffers(1, &vbo0);
+    glDeleteBuffers(1, &vbo1);
 }
 
 void ParticleEngine::snapToGrid(double rx, double ry, double *rx1, double *ry1) {
@@ -157,7 +207,7 @@ void ParticleEngine::onClick(double xPos, double yPos) {
     double rx1, ry1;
     snapToGrid(rx, ry, &rx1, &ry1);
 
-    particles.push_back(new Particle(glm::vec2(rx1, ry1), 4));
+    particles.push_back(new Particle(glm::vec2(rx1, ry1), SAND));
 }
 
 
