@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "util.h"
+#include "converter.h"
 
 
 static const struct
@@ -34,6 +35,16 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        double xPos, yPos;
+        glfwGetCursorPos(window, &xPos, &yPos);
+        ParticleEngine* particleEngine = ParticleEngine::getInstance();
+        particleEngine->onClick(xPos, yPos);
+    }
+}
+
 int main(void)
 {
     GLFWwindow* window;
@@ -45,8 +56,9 @@ int main(void)
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+    window = glfwCreateWindow(1280, 720, "Sand Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -54,6 +66,7 @@ int main(void)
     }
 
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     glfwMakeContextCurrent(window);
     gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
@@ -61,50 +74,14 @@ int main(void)
 
     // NOTE: OpenGL error checks have been omitted for brevity
 
-    GLuint program = createShaderProgram("vertex.glsl", "fragment.glsl");
-    std::vector<float> vertexData {
-            -0.5f,  0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.5f,  0.5f, 0.0f
-    };
-    std::vector<float> colorData {
-            1.0f, 0.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 0.0f
-    };
-    glFrontFace(GL_CW);
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    GLuint vbo0 = 0;
-    GLuint vbo1 = 0;
-    glGenBuffers(1, &vbo0);
-    glGenBuffers(1, &vbo1);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo0);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(vertexData[0]) * vertexData.size(),vertexData.data(),GL_STATIC_DRAW);
-    GLint posLocation = glGetAttribLocation(program, "position");
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3,GL_FLOAT,GL_FALSE,0,nullptr);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo1);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colorData[0]) * colorData.size(), colorData.data(), GL_STATIC_DRAW);
-    GLint colorLocation = glGetAttribLocation(program, "color");
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(program);
-
     // Initialize mouse move and mouse click
     // Mouse move should update the position of a circle on the screen. Possibly a transparent texture.
 
-    // ParticleEngine particleEngine;
-    // particleEngine.init();
+    Converter* converter = Converter::getInstance();
+    converter->init(window);
+
+    ParticleEngine* particleEngine = ParticleEngine::getInstance();
+    particleEngine->init();
     while (!glfwWindowShouldClose(window))
     {
 
@@ -122,31 +99,8 @@ int main(void)
 
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT);
+        particleEngine->render();
 
-        // particleEngine.render();
-        glBindVertexArray(vao);
-
-        float x = 2.0f * ((static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5);
-        float y = 2.0f * ((static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.5);
-
-        vertexData = {
-                x + -0.5f,  y + 0.5f, 0.0f,
-                x + -0.5f, y + -0.5f, 0.0f,
-                x + 0.5f, y + -0.5f, 0.0f,
-                x + 0.5f,  y + 0.5f, 0.0f
-        };
-
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo0);
-        glBufferData(GL_ARRAY_BUFFER,sizeof(vertexData[0]) * vertexData.size(),vertexData.data(),GL_STATIC_DRAW);
-        GLint posLocation = glGetAttribLocation(program, "position");
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3,GL_FLOAT,GL_FALSE,0,nullptr);
-
-
-
-
-        glDrawArrays(GL_QUADS, 0, 4);
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
@@ -154,7 +108,7 @@ int main(void)
     }
 
     glfwDestroyWindow(window);
-    glDeleteProgram(program);
+    particleEngine->destroy();
     glfwTerminate();
     exit(EXIT_SUCCESS);
 }

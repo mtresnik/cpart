@@ -51,6 +51,8 @@ MESSAGE(STATUS ${FLAGS})
 
 add_executable(cpart
         src/main.cpp
+        src/converter.h
+        src/converter.cpp
         src/util.h
         src/util.cpp
         src/particle.h
