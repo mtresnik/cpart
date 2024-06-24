@@ -37,11 +37,9 @@ void Converter::convertPixelsToRelative(double px, double py, double *rx, double
         glfwGetWindowSize(window, &width, &height);
         if (rx != nullptr) {
             *rx = 2 * (px / width) - 1;
-            printf("rx: %f\n", *rx);
         }
         if (ry != nullptr) {
             *ry = -2 * (py / height) + 1;
-            printf("ry: %f\n", *ry);
         }
     }
 }

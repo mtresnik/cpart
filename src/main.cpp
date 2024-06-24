@@ -24,7 +24,13 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         double xPos, yPos;
         glfwGetCursorPos(window, &xPos, &yPos);
         ParticleEngine* particleEngine = ParticleEngine::getInstance();
-        particleEngine->onClick(xPos, yPos);
+        particleEngine->generateRandom(xPos, yPos);
+    } else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+        ParticleEngine::getInstance()->particleType = SAND;
+    } else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+        ParticleEngine::getInstance()->particleType = WATER;
+    } else if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+        ParticleEngine::getInstance()->particleType = WOOD;
     }
 }
 
